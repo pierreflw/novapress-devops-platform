@@ -1,0 +1,33 @@
+# ============================================================
+# Terraform
+# ============================================================
+*.tfstate
+*.tfstate.backup
+*.tfplan
+*.tfvars
+*.auto.tfvars
+*.json
+
+# Répertoire local Terraform
+.terraform/
+
+# Fichiers backend (non versionnés)
+backend.hcl
+backend.tfvars
+
+# ============================================================
+# Ansible
+# ============================================================
+*.retry
+.vault_pass.txt
+vault_pass.txt
+vault-pass.txt
+ansible.cfg
+!ansible.cfg.example
+
+# ============================================================
+# IDE / Système
+# ============================================================
+.idea/
+.vscode/
+.DS_Store

@@ -1,0 +1,14 @@
+---
+
+- name: Render PV manifest on master
+  template:
+    src: "{{ role_path }}/templates/postgres-pv.yaml.j2"
+    dest: /tmp/postgres-pv.yaml
+  delegate_to: "{{ groups['k3s_servers'][0] }}"
+
+- name: Apply PostgreSQL PersistentVolume
+  kubernetes.core.k8s:
+    state: present
+    src: /tmp/postgres-pv.yaml
+    kubeconfig: /etc/rancher/k3s/k3s.yaml
+  delegate_to: "{{ groups['k3s_servers'][0] }}"

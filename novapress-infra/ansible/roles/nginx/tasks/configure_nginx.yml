@@ -1,0 +1,39 @@
+---
+
+- name: Check if Gitlab certificate exists
+  stat:
+    path: "{{ gitlab_ssl_certificate_path }}"
+  register: gitlab_ssl_cert_stat
+
+- name: Check if Rancher certificate exists
+  stat:
+    path: "{{ rancher_ssl_certificate_path }}"
+  register: rancher_ssl_cert_stat
+
+- name: Check if app certificate exists
+  stat:
+    path: "{{ app_ssl_certificate_path }}"
+  register: app_ssl_cert_stat
+
+- name: Create initial nginx conf file (without SSL)
+  template:
+    src: nginx.conf.j2
+    dest: "{{ nginx_dir_path }}/nginx.conf"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Create nginx docker-compose file
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ nginx_dir_path }}/docker-compose.yml"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Start nginx container (initial setup)
+  community.docker.docker_compose_v2:
+    project_src: "{{ nginx_dir_path }}"
+    state: present
+    recreate: always
+    pull: always

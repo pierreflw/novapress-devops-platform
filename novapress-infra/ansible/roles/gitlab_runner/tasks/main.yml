@@ -1,0 +1,32 @@
+---
+
+- name: Create gitlab runner Directory
+  file:
+    path: "{{ gitlab_runner_dir_path }}"
+    owner: root
+    group: root
+    state: directory
+    mode: "0755"
+
+- name: Generate config.toml for GitLab Runner
+  template:
+    src: "{{ config_toml_template }}"
+    dest: "{{ gitlab_runner_dir_path }}/config.toml"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Create docker-compose file
+  template:
+    src: "{{ docker_compose_template }}"
+    dest: "{{ gitlab_runner_dir_path  }}/docker-compose.yml"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Create and start Gitlab Runner
+  community.docker.docker_compose_v2:
+    project_src: "{{ gitlab_runner_dir_path }}"
+    state: present
+    recreate: always
+    pull: always

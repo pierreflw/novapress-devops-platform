@@ -1,0 +1,41 @@
+---
+
+monitoring_dir_path: "/srv/monitoring"
+prometheus_path: "{{ monitoring_dir_path }}/prometheus"
+prom_rules_path: "{{ prometheus_path }}/rules"
+alertmanager_path: "{{ monitoring_dir_path }}/alertmanager"
+alertmanager_data_path: "{{ alertmanager_path }}/data"
+grafana_path: "{{ monitoring_dir_path }}/grafana"
+
+monitoring_paths:
+  - "{{ prometheus_path }}"
+  - "{{ prom_rules_path }}"
+  - "{{ grafana_path }}"
+  - "{{ alertmanager_path }}"
+  - "{{ alertmanager_data_path }}"
+
+alerts_template: "alerts.yml.j2"
+prometheus_config_template: "prometheus.yml.j2"
+docker_compose_template: "docker-compose.yml.j2"
+alertmanager_config_template: "alertmanager.yml.j2"
+
+alertmanager_global_timeout: "5m"
+alertmanager_route_receiver: "email-receiver"
+alertmanager_route_group_wait: "10s"
+alertmanager_route_group_interval: "30s"
+alertmanager_route_repeat_interval: "1h"
+
+prometheus_image: "prom/prometheus"
+prometheus_container_name: "prometheus"
+prometheus_port: 9090
+prometheus_container_port: 9090
+
+grafana_image: "grafana/grafana"
+grafana_container_name: "grafana"
+grafana_port: 3000
+grafana_container_port: 3000
+
+alertmanager_image: "prom/alertmanager:latest"
+alertmanager_container_name: "alertmanager"
+alertmanager_port: 9093
+alertmanager_container_port: 9093

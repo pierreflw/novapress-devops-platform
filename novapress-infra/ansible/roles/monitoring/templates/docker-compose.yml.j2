@@ -1,0 +1,30 @@
+services:
+  prometheus:
+    image: "{{ prometheus_image }}"
+    user: root
+    container_name: "{{ prometheus_container_name }}"
+    ports:
+      - "{{ prometheus_port }}:{{ prometheus_container_port }}"
+    volumes:
+      - "{{ prometheus_path }}/prometheus.yml:/etc/prometheus/prometheus.yml"
+      - "{{ prometheus_path }}/data:/prometheus"
+      - "{{ prometheus_path }}/rules:/etc/prometheus/rules"
+
+  grafana:
+    image: "{{ grafana_image }}"
+    container_name: "{{ grafana_container_name }}"
+    user: "472:472"
+    ports:
+      - "{{ grafana_port }}:{{ grafana_container_port }}"
+    volumes:
+      - "{{ grafana_path }}/data:/var/lib/grafana"
+
+  alertmanager:
+    image: "{{ alertmanager_image }}"
+    container_name: "{{ alertmanager_container_name }}"
+    ports:
+      - "{{ alertmanager_port }}:{{ alertmanager_container_port }}"
+    volumes:
+      - "{{ alertmanager_path }}:/config"
+      - "{{ alertmanager_path }}/data:/data"
+    command: --config.file=/config/alertmanager.yml --log.level=debug

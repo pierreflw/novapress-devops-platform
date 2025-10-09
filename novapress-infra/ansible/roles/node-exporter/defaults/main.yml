@@ -1,0 +1,17 @@
+---
+
+node_exporter_dir_path: "/srv/node-exporter"
+docker_compose_template: "docker-compose.yml.j2"
+
+node_exporter_image: "prom/node-exporter:latest"
+node_exporter_container_name: "node-exporter"
+
+node_exporter_port: "9100"
+node_exporter_container_port: "9100"
+
+node_exporter_rootfs_mount: "/:/host:ro,rslave"
+
+node_exporter_command_args:
+  - "--path.rootfs=/host"
+  - "--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|run|var/lib/docker/.+)($|/)"
+  - "--collector.filesystem.ignored-fs-types=^tmpfs$|^fuse.lxcfs$"

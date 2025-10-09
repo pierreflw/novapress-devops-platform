@@ -1,0 +1,38 @@
+---
+
+- name: Synchronize and copy certificates
+  include_tasks: cert_fetch.yml
+  loop: "{{ sync_ssl_items }}"
+  loop_control:
+    loop_var: item
+
+- name: Create or update K8s secrets
+  include_tasks: k8s_tls_secret.yml
+  loop: "{{ sync_ssl_items }}"
+  loop_control:
+    loop_var: item
+
+- name: Securely remove temporary cert files from K3s node
+  file:
+    path: /tmp/certs
+    state: absent
+  delegate_to: "{{ groups['k3s_servers'][0] }}"
+  run_once: true
+  become: true
+
+- name: Remove fullchain.pem for all secrets
+  file:
+    path: "/tmp/{{ item.secret_name }}_fullchain.pem"
+    state: absent
+  loop: "{{ sync_ssl_items }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Remove privkey.pem for all secrets
+  file:
+    path: "/tmp/{{ item.secret_name }}_privkey.pem"
+    state: absent
+  loop: "{{ sync_ssl_items }}"
+  delegate_to: localhost
+  run_once: true
+

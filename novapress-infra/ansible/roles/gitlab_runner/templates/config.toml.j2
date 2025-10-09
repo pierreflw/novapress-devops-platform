@@ -1,0 +1,15 @@
+concurrent = 1
+check_interval = 0
+
+[session_server]
+session_timeout = 1800
+
+[[runners]]
+name = "deploy-runner"
+url = "https://{{ gitlab_hostname }}"
+token = "{{ gitlab_runner_token }}"
+executor = "docker"
+[runners.docker]
+image = "{{ gitlab_runner_job_image | default('alpine:latest') }}"
+privileged = true
+volumes = ["/cache"]

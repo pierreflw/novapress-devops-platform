@@ -1,0 +1,12 @@
+services:
+  nginx:
+    image: "{{ nginx_image }}"
+    container_name: "{{ nginx_container_name }}"
+    restart: unless-stopped
+    ports:
+      - "{{ nginx_http_port }}:{{ nginx_http_container_port }}"
+      - "{{ nginx_https_port }}:{{ nginx_https_container_port }}"
+    volumes:
+      - "{{ nginx_dir_path }}/nginx.conf:/etc/nginx/nginx.conf"
+      - "{{ letsencrypt_path }}:{{ letsencrypt_path }}:ro"
+      - "{{ certbot_webroot_path }}:/var/www/certbot"

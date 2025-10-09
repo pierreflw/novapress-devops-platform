@@ -1,0 +1,138 @@
+events {}
+
+http {
+  # Upstream Traefik HTTPS (Rancher via NodePort 31443)
+  upstream traefik_https {
+    ip_hash;
+    {% for h in groups['k3s_agents'] %}
+    server {{ hostvars[h].ansible_host }}:31443 max_fails=3 fail_timeout=10s;
+    {% endfor %}
+  }
+
+  # Upstream Traefik HTTP (App via NodePort 31080)
+  upstream traefik_http {
+    {% for h in groups['k3s_agents'] %}
+    server {{ hostvars[h].ansible_host }}:31080 max_fails=3 fail_timeout=10s;
+    {% endfor %}
+  }
+
+  # Redirect HTTP -> HTTPS pour tous les hôtes
+  server {
+    listen 80;
+    server_name {{ gitlab_hostname }} {{ rancher_hostname }} {{ app_hostname }} {{ gitlab_registry_hostname }};
+    return 301 https://$host$request_uri;
+  }
+
+  # GitLab
+  {% if gitlab_ssl_cert_stat.stat.exists %}
+  server {
+    # Écoute en HTTPS (port 443) avec chiffrement TLS
+    listen 443 ssl;
+    server_name {{ gitlab_hostname }};
+
+    # Certificat et clé privée fournis par Let's Encrypt
+    ssl_certificate     {{ gitlab_ssl_certificate_path }};
+    ssl_certificate_key {{ gitlab_ssl_private_key_path }};
+
+    # Taille maximale autorisée pour les fichiers envoyés (200 Mo pour GitLab)
+    client_max_body_size 200m;
+
+    location / {
+        # Redirection du trafic vers GitLab (accessible en HTTP interne sur le port 80)
+        proxy_pass http://{{ hostvars['gitlab'].ansible_host }}:80;
+
+        # Préservation des informations du client d’origine (indispensable pour GitLab)
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;                         # Nom d’hôte demandé par le client
+        proxy_set_header X-Real-IP $remote_addr;             # Adresse IP réelle du client
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; # Chaîne des IP traversées
+        proxy_set_header X-Forwarded-Proto $scheme;          # Protocole d’origine (HTTP ou HTTPS)
+
+        # Gestion des délais pour éviter les requêtes bloquées ou suspendues
+        proxy_connect_timeout 30s;  # Temps max pour établir la connexion avec GitLab
+        proxy_read_timeout  60s;    # Temps max d’attente pour recevoir une réponse
+        proxy_send_timeout  60s;    # Temps max pour envoyer une requête complète à GitLab
+
+        # Définition des cas où NGINX peut réessayer la requête sur un autre upstream
+        proxy_next_upstream error timeout http_502 http_503 http_504;
+    }
+}
+
+  # GitLab Registry
+  server {
+    listen 443 ssl;
+    server_name {{ gitlab_registry_hostname }};
+
+    ssl_certificate     {{ gitlab_ssl_certificate_path }};
+    ssl_certificate_key {{ gitlab_ssl_private_key_path }};
+
+    proxy_read_timeout 3600;
+    proxy_connect_timeout 3600;
+    client_max_body_size 2G;
+
+    location / {
+      proxy_pass http://{{ hostvars['gitlab'].ansible_host }}:5000;
+      proxy_http_version 1.1;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+
+      proxy_next_upstream error timeout http_502 http_503 http_504;
+    }
+  }
+  {% endif %}
+
+  # Rancher via Traefik HTTPS NodePort
+  {% if rancher_ssl_cert_stat.stat.exists %}
+  server {
+    listen 443 ssl;
+    server_name {{ rancher_hostname }};
+
+    ssl_certificate     {{ rancher_ssl_certificate_path }};
+    ssl_certificate_key {{ rancher_ssl_private_key_path }};
+
+    location / {
+      proxy_pass https://traefik_https;
+      proxy_http_version 1.1;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+
+      proxy_ssl_server_name on;
+      proxy_ssl_verify off;
+
+      proxy_connect_timeout 30s;
+      proxy_read_timeout  60s;
+      proxy_send_timeout  60s;
+      proxy_next_upstream error timeout http_502 http_503 http_504;
+    }
+  }
+  {% endif %}
+
+  # Application via Traefik HTTP NodePort
+  {% if app_ssl_cert_stat.stat.exists %}
+  server {
+    listen 443 ssl;
+    server_name {{ app_hostname }};
+
+    ssl_certificate     {{ app_ssl_certificate_path }};
+    ssl_certificate_key {{ app_ssl_private_key_path }};
+
+    location / {
+      proxy_pass http://traefik_http;
+      proxy_http_version 1.1;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+
+      proxy_connect_timeout 30s;
+      proxy_read_timeout  60s;
+      proxy_send_timeout  60s;
+      proxy_next_upstream error timeout http_502 http_503 http_504;
+    }
+  }
+  {% endif %}
+}

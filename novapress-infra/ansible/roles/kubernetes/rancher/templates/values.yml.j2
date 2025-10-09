@@ -1,0 +1,26 @@
+hostname: "{{ rancher_hostname }}"
+bootstrapPassword: "{{ rancher_bootstrap_password }}"
+replicas: {{ rancher_replicas }}
+
+ingress:
+  enabled: true
+  ingressClassName: "{{ ingress_class_name }}"
+  servicePort: 80
+  tls:
+    source: secret
+    secretName: rancher-tls
+  extraAnnotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: "websecure"
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists
+
+tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"

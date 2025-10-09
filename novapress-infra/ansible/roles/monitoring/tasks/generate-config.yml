@@ -1,0 +1,21 @@
+---
+
+- name: Create alerts.yml from template
+  template:
+    src: "{{ alerts_template }}"
+    dest: "{{ prom_rules_path }}/alerts.yml"
+
+- name: Create prometheus.yml from template
+  template:
+    src: "{{ prometheus_config_template }}"
+    dest: "{{ prometheus_path }}/prometheus.yml"
+
+- name: Create docker-compose file from template
+  template:
+    src: "{{ docker_compose_template }}"
+    dest: "{{ monitoring_dir_path }}/docker-compose.yml"
+
+- name: Create alertmanager.yml from template
+  template:
+    src: "{{ alertmanager_config_template }}"
+    dest: "{{ alertmanager_path }}/alertmanager.yml"

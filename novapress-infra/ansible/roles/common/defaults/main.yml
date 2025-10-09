@@ -1,0 +1,12 @@
+---
+
+keyring_path: "/etc/apt/keyrings"
+docker_gpg_keyfile: "{{ keyring_path }}/docker.asc"
+docker_base_url: "https://download.docker.com/linux/{{ ansible_distribution | lower }}"
+docker_gpg_key_url: "{{ docker_base_url }}/gpg"
+docker_packages:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin

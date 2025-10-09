@@ -1,0 +1,71 @@
+---
+
+- name: Generate GitLab & Registry SSL certificate with certbot (DNS-01 Cloudflare)
+  command: >
+    certbot certonly
+    --dns-cloudflare
+    --dns-cloudflare-credentials {{ cloudflare_credentials_path }}
+    --dns-cloudflare-propagation-seconds 120
+    -d {{ gitlab_hostname }}
+    -d {{ gitlab_registry_hostname }}
+    --agree-tos
+    -m {{ gitlab_email }}
+    --non-interactive
+    -v
+  args:
+    creates: "{{ gitlab_ssl_certificate_path }}"
+
+- name: Generate Rancher SSL certificate with certbot (DNS-01 Cloudflare)
+  command: >
+    certbot certonly
+    --dns-cloudflare
+    --dns-cloudflare-credentials {{ cloudflare_credentials_path }}
+    --dns-cloudflare-propagation-seconds 120
+    -d {{ rancher_hostname }}
+    --agree-tos
+    -m {{ letsencrypt_email }}
+    --non-interactive
+    -v
+  args:
+    creates: "{{ rancher_ssl_certificate_path }}"
+
+- name: Generate App SSL certificate with certbot (DNS-01 Cloudflare)
+  command: >
+    certbot certonly
+    --dns-cloudflare
+    --dns-cloudflare-credentials {{ cloudflare_credentials_path }}
+    --dns-cloudflare-propagation-seconds 120
+    -d {{ app_hostname }}
+    --agree-tos
+    -m {{ letsencrypt_email }}
+    --non-interactive
+    -v
+  args:
+    creates: "{{ app_ssl_certificate_path }}"
+
+- name: Check if Gitlab SSL certificate exists
+  stat:
+    path: "{{ gitlab_ssl_certificate_path }}"
+  register: gitlab_ssl_cert_stat
+
+- name: Check Rancher SSL certificate exists
+  stat:
+    path: "{{ rancher_ssl_certificate_path }}"
+  register: rancher_ssl_cert_stat
+
+- name: Check App SSL certificate exists
+  stat:
+    path: "{{ app_ssl_certificate_path }}"
+  register: app_ssl_cert_stat
+
+- name: Create nginx conf file with all HTTPS blocks
+  template:
+    src: nginx.conf.j2
+    dest: "{{ nginx_dir_path }}/nginx.conf"
+
+- name: Restart nginx after SSL certificate/config change
+  community.docker.docker_compose_v2:
+    project_src: "{{ nginx_dir_path }}"
+    state: present
+    recreate: always
+    pull: always

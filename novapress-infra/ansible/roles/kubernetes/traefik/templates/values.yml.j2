@@ -1,0 +1,40 @@
+ports:
+  web:
+    port: 80
+    expose:
+      default: true
+    exposedPort: 80
+    nodePort: 31080
+
+  websecure:
+    port: 443
+    expose:
+      default: true
+    exposedPort: 443
+    nodePort: 31443
+
+middlewares:
+  redirect-to-https:
+    redirectScheme:
+      scheme: https
+      permanent: true
+
+service:
+  enabled: true
+  type: NodePort
+  ports:
+    web:
+      nodePort: 31080
+      port: 80
+      targetPort: 80
+    websecure:
+      nodePort: 31443
+      port: 443
+      targetPort: 443
+
+deployment:
+  kind: DaemonSet
+
+ingressClass:
+  enabled: true
+  name: {{ ingress_class_name }}

@@ -1,0 +1,29 @@
+---
+
+# ============================================================
+# Fichier d'exemple : vault.yml.example
+# ============================================================
+# Ce fichier doit être CHIFFRÉ avec Ansible Vault avant utilisation :
+#   ansible-vault create ansible/group_vars/vault.yml
+# ou
+#   ansible-vault edit ansible/group_vars/vault.yml
+# ============================================================
+
+# Jeton API Cloudflare utilisé pour le challenge DNS Let's Encrypt
+cloudflare_api_token: "REPLACE_WITH_YOUR_CLOUDFLARE_API_TOKEN"
+
+# Jeton d’enregistrement du GitLab Runner
+gitlab_runner_token: "REPLACE_WITH_YOUR_GITLAB_RUNNER_TOKEN"
+
+# Mot de passe d’amorçage (bootstrap) de Rancher
+rancher_bootstrap_password: "REPLACE_WITH_STRONG_PASSWORD"
+
+# Adresses génériques par défaut
+alertmanager_email_to: "REPLACE_WITH_ALERT_EMAIL"
+alertmanager_email_from: "REPLACE_WITH_ALERT_SENDER"
+alertmanager_email_smarthost: "REPLACE_WITH_SMTP_HOST:PORT"
+
+# Identifiants SMTP
+alertmanager_email_auth_username: "REPLACE_WITH_SMTP_USERNAME"
+alertmanager_email_auth_password: "REPLACE_WITH_SMTP_PASSWORD"
+alertmanager_email_auth_identity: "REPLACE_WITH_SMTP_IDENTITY"

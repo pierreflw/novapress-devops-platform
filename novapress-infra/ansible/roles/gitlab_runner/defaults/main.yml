@@ -1,0 +1,10 @@
+---
+
+gitlab_runner_dir_path: "/srv/gitlab-runner"
+
+config_toml_template: "config.toml.j2"
+docker_compose_template: "docker-compose.yml.j2"
+
+gitlab_runner_image: "gitlab/gitlab-runner:latest"
+gitlab_runner_container_name: "gitlab-runner"
+gitlab_runner_job_image: "ubuntu:24.04"

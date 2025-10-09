@@ -1,0 +1,8 @@
+---
+
+gitlab_dir_path: "/srv/gitlab"
+docker_compose_template: "docker-compose.yml.j2"
+
+gitlab_image: "gitlab/gitlab-ce:latest"
+gitlab_container_name: "gitlab"
+gitlab_ssh_port: 8022

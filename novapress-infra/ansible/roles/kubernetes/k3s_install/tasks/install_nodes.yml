@@ -1,0 +1,41 @@
+---
+# Attente de l’API avant de joindre les workers
+- name: Wait for API 6443 (workers)
+  ansible.builtin.wait_for:
+    host: "{{ k3s_master_ip }}"
+    port: 6443
+    delay: 3
+    timeout: 600
+  run_once: true
+
+# Installation des workers en tant qu’agents
+- name: Install K3s agent
+  shell: |
+    curl -sfL https://get.k3s.io | \
+      K3S_TOKEN={{ k3s_token }} \
+      sh -s - agent \
+      --server https://{{ k3s_master_ip }}:6443
+  args:
+    creates: "/etc/systemd/system/k3s-agent.service"
+  when: inventory_hostname in groups['k3s_agents']
+  become: true
+
+# Poser le label selector sur tous les workers
+- name: Label all worker nodes as worker
+  command: >
+    k3s kubectl label node {{ hostvars[item].ansible_hostname }}
+    nodepool=worker --overwrite
+  loop: "{{ groups['k3s_agents'] }}"
+  delegate_to: "{{ groups['k3s_servers'][0] }}"
+  changed_when: false
+
+# Préparer le répertoire pour PostgreSQL
+- name: Ensure PostgreSQL data directory exists on workers
+  file:
+    path: /data/postgres
+    state: directory
+    owner: "999"
+    group: "999"
+    mode: "0755"
+  when: inventory_hostname in groups['k3s_agents']
+  become: true

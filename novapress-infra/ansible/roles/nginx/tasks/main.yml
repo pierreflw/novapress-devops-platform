@@ -1,0 +1,9 @@
+---
+
+- import_tasks: setup_directories.yml
+- import_tasks: install_certbot.yml
+- import_tasks: certbot_credentials.yml
+- import_tasks: configure_nginx.yml
+- import_tasks: manage_ssl.yml
+- import_tasks: schedule_cron.yml
+

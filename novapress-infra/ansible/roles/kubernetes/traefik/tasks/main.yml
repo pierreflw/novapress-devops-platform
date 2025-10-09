@@ -1,0 +1,41 @@
+---
+
+- name: Generate Traefik Helm values file
+  template:
+    src: "{{ traefik_values_template }}"
+    dest: "{{ traefik_values_file_path }}"
+
+- name: Create Traefik namespace
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ namespaces.ingress }}"
+    kubeconfig: "/etc/rancher/k3s/k3s.yaml"
+  run_once: true
+  delegate_to: "{{ groups['k3s_servers'][0] }}"
+  become: true
+
+
+- name: Add Traefik Helm repo
+  kubernetes.core.helm_repository:
+    name: traefik
+    repo_url: "{{ traefik_repo_url }}"
+
+- name: Deploy Traefik via Helm
+  kubernetes.core.helm:
+    name: "{{ traefik_release_name }}"
+    chart_ref: "{{ traefik_chart_ref }}"
+    release_namespace: "{{ namespaces.ingress }}"
+    create_namespace: false
+    values_files:
+      - "{{ traefik_values_file_path }}"
+    reset_values: true
+    atomic: true
+    wait: true
+    kubeconfig: "/etc/rancher/k3s/k3s.yaml"
+  run_once: true
+  delegate_to: "{{ groups['k3s_servers'][0] }}"
+  become: true

@@ -1,0 +1,44 @@
+- name: Ensure temporary certs directory exists on the target
+  file:
+    path: /tmp/certs
+    state: directory
+    mode: '0700'
+  delegate_to: "{{ groups['k3s_servers'][0] }}"
+  run_once: true
+  become: true
+
+- name: Fetch fullchain.pem from Nginx to the control machine ({{ item.secret_name }})
+  fetch:
+    src: "{{ letsencrypt_base_path }}/{{ item.hostname }}/{{ fullchain_file }}"
+    dest: "/tmp/{{ item.secret_name }}_{{ fullchain_file }}"
+    flat: yes
+  delegate_to: "nginx"
+  become: true
+  run_once: true
+
+- name: Copy fullchain.pem from the control machine to K3s ({{ item.secret_name }})
+  copy:
+    src: "/tmp/{{ item.secret_name }}_{{ fullchain_file }}"
+    dest: "/tmp/certs/{{ item.secret_name }}_{{ fullchain_file }}"
+    mode: '0600'
+  delegate_to: "{{ groups['k3s_servers'][0] }}"
+  become: true
+  run_once: true
+
+- name: Fetch privkey.pem from Nginx to the control machine ({{ item.secret_name }})
+  fetch:
+    src: "{{ letsencrypt_base_path }}/{{ item.hostname }}/{{ privkey_file }}"
+    dest: "/tmp/{{ item.secret_name }}_{{ privkey_file }}"
+    flat: yes
+  delegate_to: "nginx"
+  become: true
+  run_once: true
+
+- name: Copy privkey.pem from the control machine to K3s ({{ item.secret_name }})
+  copy:
+    src: "/tmp/{{ item.secret_name }}_{{ privkey_file }}"
+    dest: "/tmp/certs/{{ item.secret_name }}_{{ privkey_file }}"
+    mode: '0600'
+  delegate_to: "{{ groups['k3s_servers'][0] }}"
+  become: true
+  run_once: true

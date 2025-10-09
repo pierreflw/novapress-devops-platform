@@ -1,0 +1,16 @@
+---
+
+traefik_repo_url: "https://helm.traefik.io/traefik"
+traefik_chart_ref: "traefik/traefik"
+traefik_release_name: "traefik"
+
+traefik_values_template: "values.yml.j2"
+traefik_values_file_path: "/tmp/traefik-values.yml"
+
+traefik_web_redirect_to: "websecure"
+traefik_tls_enabled: false
+
+traefik_dashboard_enabled: false
+
+nodeSelector:
+  nodepool: worker

@@ -1,0 +1,23 @@
+---
+
+- name: Create Prometheus, Grafana, AlertManager directories
+  file:
+    state: directory
+    owner: root
+    group: root
+    path: "{{ item }}"
+  loop: "{{ monitoring_paths }}"
+
+- name: Create  Grafana rules directory with grafana user and group
+  file:
+    state: directory
+    owner: "472"
+    group: "472"
+    path: "{{ grafana_path }}/data"
+
+- name: Create  Alertmanager data directory with grafana user and group
+  file:
+    state: directory
+    owner: root
+    group: root
+    path: "{{ prometheus_path }}/rules"

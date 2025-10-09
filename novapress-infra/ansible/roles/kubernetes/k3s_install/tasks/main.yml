@@ -1,0 +1,7 @@
+---
+
+- import_tasks: install_master.yml
+  when: inventory_hostname in groups['k3s_servers']
+
+- import_tasks: install_nodes.yml
+  when: inventory_hostname in groups['k3s_agents']

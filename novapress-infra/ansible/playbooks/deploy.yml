@@ -1,0 +1,61 @@
+---
+
+- name: Common deployment
+  hosts: all
+  become: true
+  roles:
+    - common
+    - node-exporter
+
+- name: Deploy Gitlab
+  hosts: gitlab
+  become: true
+  roles:
+    - gitlab
+
+- name: Deploy Nginx
+  hosts: nginx
+  become: true
+  roles:
+    - nginx
+
+- name: Deploy monitoring
+  hosts: monitoring
+  become: true
+  roles:
+    - monitoring
+
+- name: Installer Kub prerequisites
+  hosts: kubernetes
+  become: true
+  roles:
+    - kubernetes/kubernetes_prerequisites
+
+- name: Install K3s cluster
+  hosts: kubernetes
+  become: true
+  roles:
+    - kubernetes/k3s_install
+
+- name: Create PersistentVolumes
+  hosts: k3s_servers
+  become: true
+  roles:
+    - kubernetes/pv
+
+- name: Sync Rancher ssl certificate from Nginx
+  hosts: k3s_servers
+  roles:
+    - { role: sync_ssl, delegate_from: nginx }
+
+- name: Install Traefik ingress controller
+  hosts: kubernetes
+  become: true
+  roles:
+    - kubernetes/traefik
+
+- name: Install Rancher
+  hosts: k3s_servers
+  become: true
+  roles:
+    - kubernetes/rancher

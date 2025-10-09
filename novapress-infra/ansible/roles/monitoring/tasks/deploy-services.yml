@@ -1,0 +1,8 @@
+---
+
+- name: Create and start Prometheus and Grafana
+  community.docker.docker_compose_v2:
+    project_src: "{{ monitoring_dir_path }}"
+    state: present
+    recreate: always
+    pull: always

@@ -1,0 +1,34 @@
+---
+
+# ============================================================
+# Fichier d'exemple : all.yml.example
+# ============================================================
+
+# Utilisateur Ansible pour la connexion SSH aux hôtes
+ansible_user: "ansible"
+
+# NodePorts exposés par Traefik (HTTP / HTTPS)
+http_nodeport: 31080
+https_nodeport: 31443
+
+# Adresse e-mail utilisée pour la génération des certificats Let's Encrypt
+letsencrypt_email: "admin@example.com"
+
+# Active le certificat wildcard (*.example.com)
+use_wildcard_cert: false
+
+# Chemin vers les identifiants Cloudflare (utilisé par Certbot / DNS challenge)
+cloudflare_credentials_path: "/etc/letsencrypt/cloudflare.ini"
+
+# Définition des namespaces Kubernetes utilisés dans l’infrastructure
+namespaces:
+  app: "{{ env }}-app"
+  ingress: "{{ env }}-traefik"
+  cert: "{{ env }}-cert-manager"
+  rancher: "cattle-system"
+
+# Classe d’ingress utilisée par Traefik
+ingress_class_name: "traefik-ingress"
+
+# Adresse e-mail de l’administrateur GitLab
+gitlab_email: "admin@example.com"

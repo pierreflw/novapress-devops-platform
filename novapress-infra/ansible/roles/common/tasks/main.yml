@@ -1,0 +1,63 @@
+---
+
+- name: Get APT architecture for Docker
+  set_fact:
+    docker_apt_arch: >-
+      {{ 'amd64' if ansible_architecture == 'x86_64'
+      else 'arm64' if ansible_architecture == 'aarch64'
+      else 'unsupported' }}
+
+- name: stop if architecture is unsupported
+  fail:
+    msg: "Unsupported architecture for Docker Install: {{ ansible_architecture }}"
+  when: docker_apt_arch  == 'unsupported'
+
+- name: Install prerequisites
+  apt:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+    state: present
+    update_cache: yes
+
+- name: Create docker GPG key directory
+  file:
+    path: "{{ keyring_path }}"
+    state: directory
+    mode: "0755"
+
+- name: Download Docker GPG key
+  get_url:
+    url: "{{ docker_gpg_key_url }}"
+    dest: "{{ docker_gpg_keyfile }}"
+    mode: "0644"
+
+- name: Add the Docker repository to APT sources
+  apt_repository:
+    repo: >-
+      deb [arch={{ docker_apt_arch }} signed-by={{ docker_gpg_keyfile }}]
+      {{ docker_base_url }}
+      {{ ansible_distribution_release }} stable
+    state: present
+    filename: docker
+
+- name: Install the Docker packages
+  apt:
+    name:
+      "{{ docker_packages }}"
+    state: latest
+  notify: Restart Docker
+
+- name: Starting Docker services
+  service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Adding current user to Docker group
+  user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: true

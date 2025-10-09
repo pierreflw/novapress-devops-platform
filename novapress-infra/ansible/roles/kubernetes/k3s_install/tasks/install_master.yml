@@ -1,0 +1,91 @@
+---
+# Installation du premier control-plane en mode cluster-init (HA etcd)
+- name: Install K3s server (bootstrap etcd on first control plane)
+  shell: curl -sfL https://get.k3s.io | sh -s - server --cluster-init --disable traefik
+  args:
+    creates: "/etc/systemd/system/k3s.service"
+  when: inventory_hostname == groups['k3s_servers'][0]
+  become: true
+
+# Attente du token et de l’API pour éviter les courses
+- name: Wait for node-token presence on CP1
+  ansible.builtin.wait_for:
+    path: "{{ k3s_node_token_path }}"
+    state: present
+    timeout: 600
+  delegate_to: "{{ groups['k3s_servers'][0] }}"
+  run_once: true
+  become: true
+
+- name: Wait for API 6443 to be reachable on CP1
+  ansible.builtin.wait_for:
+    host: "{{ hostvars[groups['k3s_servers'][0]].ansible_host }}"
+    port: 6443
+    delay: 3
+    timeout: 600
+  run_once: true
+
+# Lecture du token depuis CP1 et partage avec tout le cluster
+- name: Read K3s node-token from CP1
+  slurp:
+    src: "{{ k3s_node_token_path }}"
+  register: k3s_token_raw
+  delegate_to: "{{ groups['k3s_servers'][0] }}"
+  run_once: true
+  become: true
+
+- name: Share token and master IP to all hosts
+  set_fact:
+    k3s_token: "{{ k3s_token_raw.content | b64decode | trim }}"
+    k3s_master_ip: "{{ hostvars[groups['k3s_servers'][0]].ansible_host }}"
+  run_once: true
+
+# Installation des autres control-planes
+- name: Install additional K3s control planes
+  shell: |
+    curl -sfL https://get.k3s.io | K3S_TOKEN={{ k3s_token }} sh -s - server \
+      --server https://{{ k3s_master_ip }}:6443 \
+      --disable traefik
+  args:
+    creates: "/etc/systemd/system/k3s.service"
+  when: inventory_hostname != groups['k3s_servers'][0] and inventory_hostname in groups['k3s_servers']
+  become: true
+
+# Mise en place du kubeconfig sur chaque control-plane
+- name: Ensure ~/.kube directory exists
+  file:
+    path: "/home/{{ ansible_user }}/.kube"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0700'
+
+# Copie du Kubeconfig pour le user ansible pour pouvoir utiliser les commandes kubectl sans sudo
+- name: Copy kubeconfig to ~/.kube/config
+  copy:
+    src: /etc/rancher/k3s/k3s.yaml
+    dest: /home/{{ ansible_user }}/.kube/config
+    remote_src: true
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0600'
+  become: true
+
+# Définir KUBECONFIG pour l'utilisateur ansible (kubectl utilisera ~/.kube/config)
+- name: Ensure KUBECONFIG is set in .bashrc
+  lineinfile:
+    path: "/home/{{ ansible_user }}/.bashrc"
+    line: 'export KUBECONFIG=$HOME/.kube/config'
+    insertafter: EOF
+    create: yes
+  become: true
+  become_user: "{{ ansible_user }}"
+
+# Tainter les control-planes pour bloquer les pods applicatifs
+- name: Taint all control-plane nodes
+  command: >
+    k3s kubectl taint node {{ hostvars[item].ansible_hostname }}
+    node-role.kubernetes.io/control-plane=true:NoSchedule --overwrite
+  loop: "{{ groups['k3s_servers'] }}"
+  delegate_to: "{{ groups['k3s_servers'][0] }}"
+

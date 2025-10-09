@@ -1,0 +1,49 @@
+all:
+  children:
+    prod:
+      children:
+        bastion:
+          hosts:
+            nginx:
+              ansible_host: ${nginx_public_ip}
+
+        gitlab_group:
+          vars:
+            ansible_ssh_common_args: >
+              -o ProxyCommand="ssh -A -i ~/.ssh/id_rsa_ansible -W %h:%p ansible@${nginx_public_ip}"
+          hosts:
+            gitlab:
+              ansible_host: ${gitlab_private_ip}
+
+        kubernetes:
+          children:
+            k3s_servers:
+              hosts:
+                k3s_master_1:
+                  ansible_host: ${k3s_master_1_private_ip}
+                k3s_master_2:
+                  ansible_host: ${k3s_master_2_private_ip}
+                k3s_master_3:
+                  ansible_host: ${k3s_master_3_private_ip}
+
+            k3s_agents:
+              hosts:
+                k3s_node_1:
+                  ansible_host: ${k3s_node_1_private_ip}
+                k3s_node_2:
+                  ansible_host: ${k3s_node_2_private_ip}
+                k3s_node_3:
+                  ansible_host: ${k3s_node_3_private_ip}
+
+          vars:
+            ansible_ssh_common_args: >
+              -o ProxyCommand="ssh -A -i ~/.ssh/id_rsa_ansible -W %h:%p ansible@${nginx_public_ip}"
+
+        monitoring_group:
+          vars:
+            ansible_ssh_common_args: >
+              -o ProxyCommand="ssh -A -i ~/.ssh/id_rsa_ansible -W %h:%p ansible@${nginx_public_ip}"
+          hosts:
+            monitoring:
+              ansible_host: ${monitoring_private_ip}
+

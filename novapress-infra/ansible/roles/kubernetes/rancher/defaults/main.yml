@@ -1,0 +1,9 @@
+---
+
+rancher_replicas: 3
+rancher_repo_url: "https://releases.rancher.com/server-charts/latest"
+rancher_values_template: "values.yml.j2"
+rancher_values_file_path: "/tmp/rancher-values.yml"
+rancher_chart_ref: "rancher/rancher"
+rancher_release_name: "rancher"
+rancher_chart_version: "2.12.0"

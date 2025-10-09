@@ -1,0 +1,15 @@
+---
+
+- name: Create nginx directory
+  file:
+    path: "{{ nginx_dir_path }}"
+    state: directory
+    mode: "0755"
+
+- name: Create certbot webroot directory
+  file:
+    path: "{{ certbot_webroot_path }}"
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: "0755"

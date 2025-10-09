@@ -1,0 +1,18 @@
+# ============================================================
+# Fichier d'exemple : terraform.tfvars.example
+# ============================================================
+
+# ID du projet GCP (à remplacer par votre propre identifiant)
+project_id = "your-gcp-project-id"
+
+# Région GCP pour le déploiement des ressources
+region = "europe-west9"
+
+# Buckets de stockage Terraform pour chaque environnement
+dev_bucket_name     = "tfstate_bucket_dev"
+preprod_bucket_name = "tfstate_bucket_preprod"
+prod_bucket_name    = "tfstate_bucket_prod"
+
+# Compte de service Terraform
+account_id   = "terraform"
+display_name = "Terraform Service Account"

@@ -1,0 +1,31 @@
+---
+
+- name: Add/update Rancher Helm repo
+  kubernetes.core.helm_repository:
+    name: "{{ rancher_release_name }}"
+    repo_url: "{{ rancher_repo_url }}"
+    force_update: true
+  run_once: true
+  delegate_to: "{{ groups['k3s_servers'][0] }}"
+
+- name: Generate Traefik Helm values file
+  template:
+    src: "{{ rancher_values_template }}"
+    dest: "{{ rancher_values_file_path }}"
+
+
+- name: Install Rancher via Helm
+  kubernetes.core.helm:
+    name: "{{ rancher_release_name }}"
+    chart_ref: "{{ rancher_chart_ref }}"
+    chart_version: "{{ rancher_chart_version }}"
+    release_namespace: "{{ namespaces.rancher }}"
+    create_namespace: false
+    force: true
+    values_files:
+      - "{{ rancher_values_file_path }}"
+    kubeconfig: "/etc/rancher/k3s/k3s.yaml"
+  run_once: true
+  delegate_to: "{{ groups['k3s_servers'][0] }}"
+  become: true
+

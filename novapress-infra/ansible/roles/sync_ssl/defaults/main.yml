@@ -1,0 +1,12 @@
+sync_ssl_items:
+  - hostname: "{{ rancher_hostname }}"
+    namespace: "{{ namespaces.rancher }}"
+    secret_name: rancher-tls
+  - hostname: "{{ app_hostname }}"
+    namespace: "{{ namespaces.app }}"
+    secret_name: app-tls
+
+fullchain_file: "fullchain.pem"
+privkey_file: "privkey.pem"
+
+letsencrypt_base_path: "/etc/letsencrypt/live"

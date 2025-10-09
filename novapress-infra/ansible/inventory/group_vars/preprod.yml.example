@@ -1,0 +1,15 @@
+---
+
+# ============================================================
+# Fichier d'exemple : preprod.yml.example
+# ============================================================
+
+# Nom de l'environnement (utilisé pour le nommage des ressources)
+env: preprod
+
+# Plage IP du sous-réseau pour l'environnement CI/CD
+subnet_ci_ip_range: "10.1.2.0/24"
+
+# Liste blanche d'adresses IP autorisées à accéder aux métriques GitLab
+gitlab_monitoring_whitelist:
+  - "{{ subnet_ci_ip_range }}"

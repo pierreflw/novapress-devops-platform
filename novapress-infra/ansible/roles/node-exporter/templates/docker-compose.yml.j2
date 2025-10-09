@@ -1,0 +1,12 @@
+services:
+
+  node-exporter:
+    image: "{{ node_exporter_image }}"
+    container_name: "{{ node_exporter_container_name }}"
+    restart: always
+    ports:
+      - "{{ node_exporter_port }}:{{ node_exporter_container_port }}"
+    pid: "host"
+    volumes:
+      - "{{ node_exporter_rootfs_mount }}"
+    command: {{ node_exporter_command_args }}

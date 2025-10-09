@@ -1,0 +1,47 @@
+groups:
+  - name: node exporter monitoring
+    rules:
+      - alert: InstanceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+          instance_name: "{{ '{{' }} $labels.instance_name {{ '}}' }}"
+        annotations:
+          summary: >
+            {{ '{{' }} $labels.instance_name {{ '}}' }} ({{ '{{' }} $labels.instance {{ '}}' }}) down
+          description: >
+            L'instance {{ '{{' }} $labels.instance_name {{ '}}' }} ({{ '{{' }} $labels.instance {{ '}}' }})
+            n'est plus joignable depuis 1 minute
+
+      - alert: HighCPUUsage
+        expr: >
+          100 - (avg by (instance, instance_name) (irate(node_cpu_seconds_total{mode="idle"}[2m])) * 100) > 90
+        for: 1m
+        labels:
+          severity: warning
+          instance_name: "{{ '{{' }} $labels.instance_name {{ '}}' }}"
+        annotations:
+          summary: >
+            Utilisation CPU élevée sur {{ '{{' }} $labels.instance_name {{ '}}' }}
+            ({{ '{{' }} $labels.instance {{ '}}' }})
+          description: >
+            Le CPU de {{ '{{' }} $labels.instance_name {{ '}}' }} ({{ '{{' }} $labels.instance {{ '}}' }})
+            est utilisé à plus de 90 % depuis 1 minute
+
+      - alert: HighMemoryUsage
+        expr: >
+          (
+            node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes
+          ) / node_memory_MemTotal_bytes > 0.7
+        for: 1m
+        labels:
+          severity: warning
+          instance_name: "{{ '{{' }} $labels.instance_name {{ '}}' }}"
+        annotations:
+          summary: >
+            Mémoire presque saturée sur {{ '{{' }} $labels.instance_name {{ '}}' }}
+            ({{ '{{' }} $labels.instance {{ '}}' }})
+          description: >
+            Plus de 70 % de la mémoire est utilisée sur {{ '{{' }} $labels.instance_name {{ '}}' }}
+            ({{ '{{' }} $labels.instance {{ '}}' }})

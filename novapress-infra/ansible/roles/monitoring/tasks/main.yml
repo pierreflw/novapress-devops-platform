@@ -1,0 +1,5 @@
+---
+
+- import_tasks: setup-directories.yml
+- import_tasks: generate-config.yml
+- import_tasks: deploy-services.yml

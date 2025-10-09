@@ -1,0 +1,41 @@
+# ============================================================
+# Fichier d'exemple : dev.tfvars.example
+# ============================================================
+
+# Projet / région / zone
+project_id = "your-gcp-project-id"
+region     = "europe-west9"
+zone       = "europe-west9-b"
+
+# Environnement
+env = "dev"
+
+# Réseau VPC et sous-réseaux
+network_name           = "vpc-devops-dev"
+subnet_public_name     = "subnet-public-dev"
+subnet_public_ip_range = "10.0.1.0/24"
+subnet_ci_name         = "subnet-ci-dev"
+subnet_ci_ip_range     = "10.0.2.0/24"
+subnet_k8s_name        = "subnet-k8s-dev"
+subnet_k8s_ip_range    = "10.0.3.0/24"
+
+# Paramètres d’infrastructure
+boot_disk_image = "ubuntu-os-cloud/ubuntu-2204-lts"
+mtu             = 1460
+routing_mode    = "GLOBAL"
+
+# Types de machines par rôle
+machine_type = {
+  gitlab       = "e2-standard-4"
+  nginx        = "e2-medium"
+  monitoring   = "e2-custom-2-4096"
+  k3s_master_1 = "e2-custom-2-4096"
+  k3s_master_2 = "e2-custom-2-4096"
+  k3s_master_3 = "e2-custom-2-4096"
+  k3s_node_1   = "e2-custom-2-4096"
+  k3s_node_2   = "e2-custom-2-4096"
+  k3s_node_3   = "e2-custom-2-4096"
+}
+
+# Clé publique SSH à déployer sur les VM
+ssh_pubkey_path = "~/.ssh/id_rsa_ansible.pub"

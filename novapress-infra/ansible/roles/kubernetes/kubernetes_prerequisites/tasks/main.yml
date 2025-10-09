@@ -1,0 +1,32 @@
+---
+
+- name: Ensure pip3 and curl are installed
+  package:
+    name: "{{ item }}"
+    state: present
+  become: true
+  loop:
+    - curl
+    - python3-pip
+
+- name: Install required Python library for Kubernetes
+  pip:
+    name: kubernetes
+    executable: pip3
+  become: true
+
+- name: Install Helm
+  block:
+    - name: Download Helm installer script
+      get_url:
+        url: "{{ helm_install_script_url }}"
+        dest: "{{ helm_install_script_path }}"
+        mode: '0700'
+
+    - name: Run Helm installer script
+      shell: "{{ helm_install_script_path }}"
+      args:
+        creates: "{{ helm_binary_path }}"
+
+
+

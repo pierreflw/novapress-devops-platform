@@ -1,0 +1,21 @@
+---
+
+# ============================================================
+# Fichier d'exemple : dev.yml.example
+# ============================================================
+
+# Nom de l'environnement (utilisé pour le nommage des ressources)
+env: dev
+
+# Noms de domaines utilisés par les différents services
+gitlab_hostname: "gitlab.example.com"
+gitlab_registry_hostname: "registry.example.com"
+rancher_hostname: "rancher.example.com"
+app_hostname: "app.example.com"
+
+# Plage IP du sous-réseau pour l'environnement CI/CD
+subnet_ci_ip_range: "10.0.2.0/24"
+
+# Liste blanche d'adresses IP autorisées à accéder aux métriques GitLab
+gitlab_monitoring_whitelist:
+  - "{{ subnet_ci_ip_range }}"
