@@ -52,8 +52,8 @@ novapress-devops-platform/
 |----------|--------|
 | Infrastructure | Terraform, Ansible, GCP |
 | CI/CD | GitLab, Helm, Docker |
-| Orchestration | Kubernetes (K3s), Traefik, cert-manager |
-| Supervision | Prometheus, Grafana, Alertmanager |
+| Orchestration | Kubernetes (K3s), Traefik, Certbot |
+| Supervision | Prometheus, Grafana, Alertmanager, Rancher |
 
 ---
 
