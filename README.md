@@ -21,7 +21,7 @@ Ce projet illustre l’ensemble du cycle DevOps : **Infrastructure as Code, CI/C
 
 - **Infrastructure** : Terraform (GCP), Ansible, NGINX (reverse proxy HTTPS)
 - **CI/CD** : GitLab hébergé sur la plateforme, pipelines automatiques et runners
-- **Orchestration** : Kubernetes (K3s), Traefik, cert-manager, Helm
+- **Orchestration** : Kubernetes (K3s), Traefik, Helm
 - **Supervision** : Prometheus, Grafana, Alertmanager
 
 ---
