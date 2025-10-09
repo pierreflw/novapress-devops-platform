@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: novapress-front
+  labels:
+    app: novapress-front
+spec:
+  replicas: {{ .Values.frontend.replicaCount }}
+  selector:
+    matchLabels:
+      app: novapress-front
+  template:
+    metadata:
+      labels:
+        app: novapress-front
+    spec:
+      {{- if .Values.frontend.imagePullSecrets }}
+      imagePullSecrets:
+        {{- range .Values.frontend.imagePullSecrets }}
+        - name: {{ .name }}
+        {{- end }}
+      {{- end }}
+      containers:
+        - name: frontend
+          image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+          ports:
+            - containerPort: {{ .Values.frontend.port }}
+          env:
+            - name: REACT_APP_API_URL
+              value: "{{ .Values.frontend.env.REACT_APP_API_URL }}"
+
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - novapress-front
+              topologyKey: kubernetes.io/hostname

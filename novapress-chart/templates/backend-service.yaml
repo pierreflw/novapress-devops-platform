@@ -1,0 +1,13 @@
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: novapress-back
+spec:
+  type: ClusterIP
+  selector:
+    app: novapress-back
+  ports:
+    - port: {{ .Values.backend.port }}
+      targetPort: {{ .Values.backend.port }}

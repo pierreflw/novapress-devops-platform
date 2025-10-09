@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: novapress-back
+  labels:
+    app: novapress-back
+spec:
+  replicas: {{ .Values.backend.replicaCount }}
+  selector:
+    matchLabels:
+      app: novapress-back
+  template:
+    metadata:
+      labels:
+        app: novapress-back
+    spec:
+      {{- if .Values.backend.imagePullSecrets }}
+      imagePullSecrets:
+        {{- range .Values.backend.imagePullSecrets }}
+        - name: {{ .name }}
+        {{- end }}
+      {{- end }}
+      containers:
+        - name: backend
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          ports:
+            - containerPort: {{ .Values.backend.port }}
+          env:
+            - name: DATABASE_URL
+              value: "{{ .Values.backend.env.DATABASE_URL }}"
+            - name: JWT_SECRET
+              value: "{{ .Values.backend.env.JWT_SECRET }}"
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - sh
+                  - -c
+                  - |
+                    echo "⏳ Initialisation Prisma (db push)..."
+                    npx prisma db push || echo "⚠️ Échec du db push"
+                    echo "🌱 Seeding database..."
+                    npx prisma db seed || echo "⚠️ Échec du db seed"
+
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - novapress-back
+              topologyKey: kubernetes.io/hostname

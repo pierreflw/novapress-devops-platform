@@ -1,0 +1,78 @@
+---
+variables:
+  FRONT_REPO_URL: https://$REPO_USER_FRONT:$REPO_TOKEN_FRONT@gitlab.nova-press.org/root/novapress-front.git
+  BACK_REPO_URL: https://$REPO_USER_BACK:$REPO_TOKEN_BACK@gitlab.nova-press.org/root/novapress-back.git
+  REGISTRY_URL_FRONT: registry.nova-press.org/root/novapress-front
+  REGISTRY_URL_BACK: registry.nova-press.org/root/novapress-back
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_TLS_CERTDIR: ""
+stages:
+  - build
+  - deploy
+build_front:
+  stage: build
+  image: docker:24
+  services:
+    - docker:24-dind
+  before_script:
+    - docker login -u "$REPO_USER_FRONT" -p "$REPO_TOKEN_FRONT"
+      registry.nova-press.org
+    - git clone "$FRONT_REPO_URL" front
+  script:
+    - docker build -t "$REGISTRY_URL_FRONT:$CI_COMMIT_SHORT_SHA" ./front
+    - docker push "$REGISTRY_URL_FRONT:$CI_COMMIT_SHORT_SHA"
+    - echo "IMAGE_TAG=$CI_COMMIT_SHORT_SHA" > build.env
+  artifacts:
+    reports:
+      dotenv: front.env
+  only:
+    - main
+build_back:
+  stage: build
+  image: docker:24
+  services:
+    - docker:24-dind
+  before_script:
+    - docker login -u "$REPO_USER_BACK" -p "$REPO_TOKEN_BACK"
+      registry.nova-press.org
+    - git clone "$BACK_REPO_URL" back
+  script:
+    - docker build -f back/apps/api/Dockerfile -t
+      "$REGISTRY_URL_BACK:$CI_COMMIT_SHORT_SHA" back/apps/api
+    - docker push "$REGISTRY_URL_BACK:$CI_COMMIT_SHORT_SHA"
+    - echo "BACK_IMAGE_TAG=$CI_COMMIT_SHORT_SHA" > back.env
+  artifacts:
+    reports:
+      dotenv: back.env
+  only:
+    - main
+deploy_app:
+  stage: deploy
+  image: alpine:latest
+  dependencies:
+    - build_front
+    - build_back
+  before_script:
+    - apk add --no-cache openssh git bash curl
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan -H 34.163.223.217 >> ~/.ssh/known_hosts
+    - ssh-keyscan -H 10.0.3.2 >> ~/.ssh/known_hosts
+  script:
+    - >
+      ssh -A
+      -o ProxyCommand="ssh -A -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -W %h:%p ansible@34.163.223.217"
+      -i ~/.ssh/id_rsa
+      ansible@10.0.3.2
+      "rm -rf /home/ansible/app_chart &&
+      git clone https://$REPO_USER_CHART:$REPO_TOKEN_CHART@gitlab.nova-press.org/root/novapress-chart.git /home/ansible/app_chart &&
+      helm upgrade --install app /home/ansible/app_chart \
+        -n dev-app \
+        --set frontend.image.tag=${IMAGE_TAG} \
+        --set frontend.imagePullSecrets[0].name=regcred-front \
+        --set backend.image.tag=${BACK_IMAGE_TAG} \
+        --set backend.imagePullSecrets[0].name=regcred-back \
+        -f /home/ansible/app_chart/values.yaml"
+  only:
+    - main

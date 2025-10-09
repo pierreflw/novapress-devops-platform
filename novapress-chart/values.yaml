@@ -1,0 +1,57 @@
+# ============================================================
+# Fichier d'exemple : values.yaml.example
+# ============================================================
+
+backend:
+  image:
+    repository: registry.example.com/project/backend
+    tag: v1.0.0
+  port: 3000
+  imagePullSecrets:
+    - name: regcred-back
+
+  env:
+    DATABASE_URL: postgresql://user:password@db-host:5432/dbname
+    JWT_SECRET: changeme
+  replicaCount: 3
+
+frontend:
+  image:
+    repository: registry.example.com/project/frontend
+    tag: v1.0.0
+  port: 4100
+  env:
+    REACT_APP_API_URL: /api
+  replicaCount: 3
+  imagePullSecrets:
+    - name: regcred-front
+
+db:
+  image:
+    repository: postgres
+    tag: "16"
+  port: 5432
+  user: user
+  password: changeme
+  name: dbname
+  persistence:
+    size: 5Gi
+    storageClassName: manual
+
+ingress:
+  enabled: true
+  ingressClassName: traefik-ingress
+  hosts:
+    - host: app.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+        - path: /api
+          pathType: Prefix
+  tls:
+    - hosts:
+        - app.example.com
+      secretName: app-tls
+
+log:
+  level: INFO

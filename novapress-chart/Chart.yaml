@@ -1,0 +1,6 @@
+apiVersion: v2
+name: Novapress
+description: Chart Helm to deploy the Novapress application (front, back, db).
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
