@@ -29,10 +29,10 @@ Ce projet illustre l’ensemble du cycle DevOps : **Infrastructure as Code, CI/C
 ## 📂 Structure du projet
 
 novapress-devops-platform/
-├── novapress-infra/ # Terraform + Ansible (provisionnement et configuration)
-├── novapress-back/ # API (Node.js) avec Dockerfile
-├── novapress-front/ # UI (React) avec Dockerfile
-└── novapress-chart/ # Helm chart pour le déploiement complet
+- novapress-infra/ # Terraform + Ansible (provisionnement et configuration)
+─ novapress-back/ # API (Node.js) avec Dockerfile
+─ novapress-front/ # UI (React) avec Dockerfile
+─ novapress-chart/ # Helm chart pour le déploiement complet
 
 ---
 
